@@ -1,0 +1,25 @@
+# Local data and logs
+data/
+letsencrypt_certs/
+
+# Secret configuration files
+# Use the .example files as templates
+config/users.txt
+config/sasl_passwd
+config/rfc2136.ini
+config/sender_login_map.pcre
+
+# Generated configuration files
+# These are generated from templates and can be regenerated
+config/main.cf
+
+# Environment files
+.env
+
+# IDE and OS specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

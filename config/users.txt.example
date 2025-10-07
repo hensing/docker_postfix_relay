@@ -1,0 +1,19 @@
+# This is an example file for Postfix SMTP authentication users.
+#
+# Format: username:password
+#
+# - Each line represents a user.
+# - The username is the SASL login name.
+# - The password is the plain text password for the user.
+# - Lines starting with # are comments and are ignored.
+#
+# IMPORTANT:
+# Do not use special characters like ':' in usernames or passwords to avoid parsing issues.
+# This file contains sensitive information and should be protected.
+# It should be listed in your .gitignore file.
+
+# Example user for a web application
+webapp:a_very_strong_password
+
+# Example user for another service
+monitoring:another_secret_password

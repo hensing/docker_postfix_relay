@@ -1,0 +1,87 @@
+# General Postfix configuration file.
+# This file is used to configure Postfix and how it handles email.
+
+# General settings
+smtpd_banner = $myhostname ESMTP $mail_name (none of your business)
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+# myhostname, mydomain, and myorigin are set dynamically by the entrypoint script
+myhostname = {{MYHOSTNAME}}
+mydomain = {{MYDOMAIN}}
+myorigin = $mydomain
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = localhost
+# relayhost is set dynamically by the entrypoint script
+relayhost = {{RELAYHOST}}
+# mynetworks is set dynamically by the entrypoint script
+mynetworks = {{MYNETWORKS}}
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = all
+disable_vrfy_command=yes
+
+#
+# SMTP Client SASL Authentication for Relay (outgoing)
+#
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+
+# force certificate verification
+smtp_tls_security_level = verify
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+# smtp_tls_loglevel is set dynamically by the entrypoint script
+smtp_tls_loglevel = {{SMTP_TLS_LOGLEVEL}}
+
+#
+# SASL Authentication
+#
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_path = /etc/sasl2/smtpd.conf
+smtpd_sasl_type = cyrus
+
+# TLS configuration
+# smtpd_tls_cert_file and smtpd_tls_key_file are set dynamically by the entrypoint script
+smtpd_tls_cert_file = {{CERT_FILE}}
+smtpd_tls_key_file = {{KEY_FILE}}
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+# force TLS for incoming mails
+smtpd_tls_security_level = encrypt
+
+# TLS Log Level for incoming mails
+# 0: Disable. 1: Summary (recommended for production). 2: Add certificate details. 3+: Verbose debug.
+# smtpd_tls_loglevel is set dynamically by the entrypoint script
+smtpd_tls_loglevel = {{SMTPD_TLS_LOGLEVEL}}
+
+#
+# Access control lists
+#
+smtpd_helo_required = yes
+smtpd_helo_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unknown_helo_hostname
+smtpd_sender_login_maps = pcre:/etc/postfix/sender_login_map.pcre
+
+# check sender before recipient is known
+smtpd_sender_restrictions =
+    reject_sender_login_mismatch,
+    reject_unknown_sender_domain
+
+# define list of allowed recipients
+smtpd_recipient_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unauth_destination
+
+# set compatibility level
+compatibility_level = 3.6
+
+# Force logging to file for debugging
+maillog_file = /var/log/mail.log
+
+# For deep debugging of a specific client, uncomment the following lines:
+#debug_peer_list = 1.2.3.4
+#debug_peer_level = 3

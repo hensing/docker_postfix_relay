@@ -1,0 +1,48 @@
+---
+volumes:
+  letsencrypt_certs:
+
+services:
+  postfix:
+    image: postfix
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: postfix-relay
+    hostname: smtp.dickten.info
+    ports:
+      - "587:587" # SMTP Submission Port with authentication
+    volumes:
+      - ./config/main.cf:/etc/postfix/main.cf
+      - ./config/master.cf:/etc/postfix/master.cf
+      - ./config/smtpd.conf:/etc/sasl2/smtpd.conf
+      - ./config/sender_login_map.pcre:/etc/postfix/sender_login_map.pcre
+      - ./config/sasl_passwd:/etc/postfix/sasl_passwd
+      - ./config/users.txt:/etc/postfix/users.txt
+      - ./data/mail.log:/var/log/mail.log
+      - letsencrypt_certs:/etc/letsencrypt
+    environment:
+      - DOMAIN=dickten.info
+      - MYHOSTNAME=smtp.dickten.info
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - mail
+    restart: unless-stopped
+    command: ["/usr/local/bin/entrypoint.sh"]
+
+  certbot:
+    profiles:
+      - tools
+    build:
+      context: .
+      dockerfile: certbot.Dockerfile
+    container_name: certbot
+    volumes:
+      - letsencrypt_certs:/etc/letsencrypt
+      - ./data/letsencrypt.log:/var/log/letsencrypt/letsencrypt.log
+      - ./config/rfc2136.ini:/etc/certbot-credentials/rfc2136.ini:ro
+
+networks:
+  mail:
+    external: true

@@ -1,0 +1,17 @@
+# Postfix Sender Login Mapping (PCRE)
+# Format: /sender_address_pattern/    allowed_login_names (comma-separated, NO REGEX)
+# Documentation: http://www.postfix.org/postconf.5.html#smtpd_sender_login_maps
+
+# Shared mailbox: multiple users allowed to send from 'notify@{{MYDOMAIN}}'
+/^notify@{{MYDOMAIN}}$/            user1@{{MYDOMAIN}},user2@{{MYDOMAIN}}
+
+# Shared mailbox: broader group allowed to send from 'do-not-reply@{{MYDOMAIN}}'
+/^do-not-reply@{{MYDOMAIN}}$/       user1@{{MYDOMAIN}},user2@{{MYDOMAIN}},user3@{{MYDOMAIN}}
+
+# Service account: specific service users allowed to send from 'cloud@{{MYDOMAIN}}'
+/^cloud@{{MYDOMAIN}}$/              service1@{{MYDOMAIN}},service2@{{MYDOMAIN}}
+
+# Default rule: Each user is allowed to send from their own address.
+# IMPORTANT: This catch-all rule must be placed AFTER specific group mappings.
+# $1 captures the full sender address and returns it as the only allowed login name.
+/^([^@]+@{{MYDOMAIN}})$/           $1
