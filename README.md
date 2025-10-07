@@ -64,6 +64,10 @@ Create the necessary configuration files by copying the `.example` files in the 
   - Edit `config/rfc2136.ini` with the details of your DNS server and TSIG key.
   - **Important:** Set the file permissions to `600`: `chmod 600 config/rfc2136.ini`.
 
+- **`(Optional) cp config/sender_access_map_regexp.example config/sender_login_map.pcre`**
+  - This file allows you to restrict which authenticated users can send from which email addresses.
+  - Edit `config/sender_login_map.pcre` to define your policies. If this file is not created, a default permissive setting is used.
+
 ### 3. Initialize the Environment
 
 Run the initialization script. This will create the `data` directory and empty log files, which is crucial to prevent Docker from creating directories instead of files on the first run.
