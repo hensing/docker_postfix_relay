@@ -1,0 +1,45 @@
+---
+volumes:
+  letsencrypt_certs:
+
+services:
+  postfix:
+    image: ghcr.io/hensing/docker_postfix_relay:latest
+    container_name: postfix-relay
+    hostname: ${MYHOSTNAME}
+    env_file: .env
+    ports:
+      - "587:587" # SMTP Submission Port with authentication
+    volumes:
+      - ./config:/config.template:ro
+      - ./data/mail.log:/var/log/mail.log
+      - letsencrypt_certs:/etc/letsencrypt
+    environment:
+      - DOMAIN=${DOMAIN}
+      - MYHOSTNAME=${MYHOSTNAME}
+      - RELAY_HOST=${RELAY_HOST}
+      - MYNETWORKS=${MYNETWORKS}
+      - SMTP_TLS_LOGLEVEL=${SMTP_TLS_LOGLEVEL}
+      - SMTPD_TLS_LOGLEVEL=${SMTPD_TLS_LOGLEVEL}
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - mail
+    restart: unless-stopped
+    command: ["/usr/local/bin/entrypoint.sh"]
+
+  certbot:
+    profiles:
+      - tools
+    build:
+      context: .
+      dockerfile: certbot.Dockerfile
+    container_name: certbot
+    volumes:
+      - letsencrypt_certs:/etc/letsencrypt
+      - ./data/letsencrypt.log:/var/log/letsencrypt/letsencrypt.log
+      - ./config/rfc2136.ini:/etc/certbot-credentials/rfc2136.ini:ro
+
+networks:
+  mail:
+    external: true

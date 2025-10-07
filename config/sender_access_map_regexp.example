@@ -1,0 +1,22 @@
+# This is an example file for Postfix's sender login mapping.
+# It defines which authenticated users are allowed to send email from which "From" addresses.
+#
+# Format: /<regex_pattern_for_from_address>/ <space_separated_list_of_allowed_users>
+#
+# - This file uses regular expressions.
+# - Lines starting with # are comments.
+#
+# IMPORTANT:
+# This file can contain sensitive information about your user structure.
+# It is recommended to add the actual file to your .gitignore.
+
+# Example 1: Allow any authenticated user to send as themselves.
+# The SASL username must match the local part of the email address.
+# e.g., user 'webapp' can send as 'webapp@yourdomain.com'.
+/^([^@]+)@yourdomain\.com$/   $1
+
+# Example 2: Allow specific users ('user1', 'user2') to send from a shared address.
+/^shared-address@yourdomain\.com$/   user1,user2
+
+# Example 3: Allow a group of users to send from any "no-reply" address.
+/^no-reply-([^@]+)@yourdomain\.com$/   user1,user3,webapp

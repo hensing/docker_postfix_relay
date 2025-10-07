@@ -1,0 +1,17 @@
+# This is an example file for Postfix SMTP client authentication.
+# It stores the credentials needed to send email via a relay host (e.g., Gmail).
+#
+# Format: [relayhost]:port username:password
+#
+# - [relayhost]:port must exactly match the 'relayhost' parameter in main.cf.
+#   The square brackets are important as they prevent MX record lookups.
+# - username:password are the credentials for the relay service.
+#   For Gmail, this would be your full email address and an App Password.
+#
+# IMPORTANT:
+# This file contains sensitive information and should be protected (chmod 600).
+# It should be listed in your .gitignore file.
+# After editing this file, you must run 'postmap' on it to create the .db file,
+# however, the entrypoint.sh script handles this automatically on container start.
+
+[smtp-relay.gmail.com]:587 your_full_email@gmail.com:your_google_app_password
