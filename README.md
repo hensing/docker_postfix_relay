@@ -109,7 +109,7 @@ This will build the custom Certbot image and run it to get your certificate.
 Once you have the certificate, you can start the Postfix relay service.
 
 ```bash
-docker compose up -d postfix
+docker compose up -d postfix-relay
 ```
 
 Your SMTP relay is now running and available on port 587.

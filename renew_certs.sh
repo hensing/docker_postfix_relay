@@ -32,7 +32,7 @@ RENEWAL_OUTPUT=$(docker compose run --rm certbot renew --no-random-sleep --quiet
 # Check if the output contains "Congratulations" which indicates a successful renewal.
 if echo "$RENEWAL_OUTPUT" | grep -q "Congratulations"; then
   echo "A certificate was renewed. Reloading Postfix..."
-  docker compose exec postfix-relay postfix reload
+  docker compose exec postfix postfix reload
   echo "Postfix reloaded successfully."
 else
   echo "No certificates were due for renewal."

@@ -12,9 +12,8 @@ then
     exit 1
 fi
 
-echo "Building and running Certbot container to obtain certificate..."
-# The --build flag is important to ensure the custom certbot.Dockerfile is used.
-if docker compose up --build certbot; then
+echo "Running Certbot container to obtain certificate..."
+if docker compose run --rm certbot certonly; then
   echo "Certificate obtained successfully."
   echo "Reloading Postfix to apply the new certificate..."
   docker compose exec postfix postfix reload

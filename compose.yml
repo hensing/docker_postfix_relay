@@ -4,10 +4,7 @@ volumes:
 
 services:
   postfix:
-    image: postfix
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/hensing/postfix-relay:latest
     container_name: postfix-relay
     hostname: smtp.dickten.info
     ports:
@@ -32,12 +29,8 @@ services:
     command: ["/usr/local/bin/entrypoint.sh"]
 
   certbot:
-    profiles:
-      - tools
-    build:
-      context: .
-      dockerfile: certbot.Dockerfile
-    container_name: certbot
+    image: ghcr.io/hensing/postfix-certbot:latest
+    container_name: postfix-certbot
     volumes:
       - letsencrypt_certs:/etc/letsencrypt
       - ./data/letsencrypt.log:/var/log/letsencrypt/letsencrypt.log

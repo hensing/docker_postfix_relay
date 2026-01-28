@@ -53,9 +53,18 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push Postfix image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ghcr.io/${{ github.repository_owner }}/docker_postfix_relay:latest
+          tags: ghcr.io/${{ github.repository_owner }}/postfix-relay:latest
+
+      - name: Build and push Certbot image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./certbot.Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ghcr.io/${{ github.repository_owner }}/postfix-certbot:latest
