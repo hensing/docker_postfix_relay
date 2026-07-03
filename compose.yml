@@ -1,12 +1,9 @@
 ---
-volumes:
-  letsencrypt_certs:
-
 services:
   postfix:
     image: ghcr.io/hensing/postfix-relay:latest
     container_name: postfix-relay
-    hostname: smtp.dickten.info
+    hostname: ${MYHOSTNAME:?Set MYHOSTNAME in .env}
     ports:
       - "587:587" # SMTP Submission Port with authentication
     volumes:
@@ -17,24 +14,32 @@ services:
       - ./config/sasl_passwd:/etc/postfix/sasl_passwd
       - ./config/users.txt:/etc/postfix/users.txt
       - ./data/mail.log:/var/log/mail.log
-      - letsencrypt_certs:/etc/letsencrypt
-    environment:
-      - DOMAIN=dickten.info
-      - MYHOSTNAME=smtp.dickten.info
+      # TLS certificate + private key, provided by an external ACME client
+      # (e.g. Caddy) - not managed by this project. See README "TLS Certificates".
+      - ${CERTS_DIR:-./certs}:/etc/postfix/certs:ro
+    env_file:
+      - .env
+    cap_drop:
+      - ALL
     cap_add:
-      - NET_ADMIN
+      - CHOWN        # entrypoint chowns bind-mounted config + dpkg-reconfigure's set-permissions step
+      - DAC_OVERRIDE  # root reading/writing files it doesn't strictly own during reconfigure/startup
+      - FOWNER        # chmod/chown on sasl_passwd, users.txt, sasldb2 without exact owner match
+      - SETGID        # master drops forked children (smtpd/qmgr/pickup/cleanup) to the postfix group
+      - SETUID        # master drops forked children to the postfix user - the actual privilege-drop
+      - KILL          # SIGTERM trap -> `postfix stop`; master signalling children running under a different uid
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "postfix status || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     networks:
       - mail
     restart: unless-stopped
     command: ["/usr/local/bin/entrypoint.sh"]
-
-  certbot:
-    image: ghcr.io/hensing/postfix-certbot:latest
-    container_name: postfix-certbot
-    volumes:
-      - letsencrypt_certs:/etc/letsencrypt
-      - ./data/letsencrypt.log:/var/log/letsencrypt/letsencrypt.log
-      - ./config/rfc2136.ini:/etc/certbot-credentials/rfc2136.ini:ro
 
 networks:
   mail:

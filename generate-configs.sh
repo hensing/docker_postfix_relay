@@ -7,8 +7,8 @@ set -e
 # Default values
 MYDOMAIN="${1:-example.com}"
 MYHOSTNAME="${2:-smtp.${MYDOMAIN}}"
-CERT_FILE="${3:-/etc/letsencrypt/live/${MYHOSTNAME}/fullchain.pem}"
-KEY_FILE="${4:-/etc/letsencrypt/live/${MYHOSTNAME}/privkey.pem}"
+CERT_FILE="${3:-/etc/postfix/certs/fullchain.pem}"
+KEY_FILE="${4:-/etc/postfix/certs/privkey.pem}"
 RELAYHOST="${5:-[smtp-relay.gmail.com]:587}"
 MYNETWORKS="${6:-127.0.0.0/8 [::1]/128 172.24.0.0/16 [fd31:444d:df93:2::]/64}"
 SMTP_TLS_LOGLEVEL="${7:-1}"
@@ -62,7 +62,6 @@ fi
 configs_to_copy=(
     "config/users.txt:config/users.txt.example"
     "config/sasl_passwd:config/sasl_passwd.example"
-    "config/rfc2136.ini:config/rfc2136.ini.example"
 )
 
 for config_pair in "${configs_to_copy[@]}"; do
@@ -80,4 +79,3 @@ echo "- config/main.cf"
 echo "- config/sender_login_map.pcre"
 echo "- config/users.txt"
 echo "- config/sasl_passwd"
-echo "- config/rfc2136.ini"

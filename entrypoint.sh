@@ -18,7 +18,6 @@ chown root:root /etc/sasl2/smtpd.conf 2>/dev/null || echo "Warning: Could not ch
 # Set restrictive permissions for sensitive files
 [ -f /etc/postfix/sasl_passwd ] && chmod 600 /etc/postfix/sasl_passwd
 [ -f /etc/postfix/users.txt ] && chmod 600 /etc/postfix/users.txt
-[ -f /etc/postfix/rfc2136.ini ] && chmod 600 /etc/postfix/rfc2136.ini
 
 # Configure Postfix with runtime environment variables
 echo "Configuring Postfix for domain: ${DOMAIN}..."

@@ -29,7 +29,7 @@ clean:
 test:
 	@if [ -f config/main.cf ]; then \
 		echo "Testing Postfix configuration..."; \
-		docker run --rm -v $(PWD)/config:/etc/postfix:ro debian:bookworm-slim sh -c "apt-get update && apt-get install -y postfix && postfix check"; \
+		docker run --rm -v $(PWD)/config:/etc/postfix:ro debian:trixie-slim sh -c "apt-get update && apt-get install -y postfix && postfix check"; \
 	else \
 		echo "Error: config/main.cf not found. Run 'make configs' first."; \
 		exit 1; \

@@ -53,6 +53,16 @@ smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 # force TLS for incoming mails
 smtpd_tls_security_level = encrypt
 
+# Minimum TLS version and cipher strength (both directions)
+smtpd_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtp_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtpd_tls_mandatory_protocols = $smtpd_tls_protocols
+smtp_tls_mandatory_protocols = $smtp_tls_protocols
+smtpd_tls_ciphers = high
+smtp_tls_ciphers = high
+smtpd_tls_mandatory_ciphers = high
+smtp_tls_mandatory_ciphers = high
+
 # TLS Log Level for incoming mails
 # 0: Disable. 1: Summary (recommended for production). 2: Add certificate details. 3+: Verbose debug.
 # smtpd_tls_loglevel is set dynamically by the entrypoint script

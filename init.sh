@@ -10,12 +10,13 @@ echo "--- Initializing Postfix Relay Environment ---"
 mkdir -p ./data
 echo "Ensuring ./data directory exists."
 
+# Create default TLS certificate mount point (populated by your ACME client, e.g. Caddy)
+mkdir -p ./certs
+echo "Ensuring ./certs directory exists."
+
 # Initialize log files to prevent Docker from creating them as directories
 touch ./data/mail.log
 echo "Ensuring ./data/mail.log exists."
-
-touch ./data/letsencrypt.log
-echo "Ensuring ./data/letsencrypt.log exists."
 
 # Setup initial configuration files from examples if missing
 echo "Setting up configuration files..."
@@ -25,7 +26,6 @@ configs_to_copy=(
     "config/smtpd.conf:config/smtpd.conf"
     "config/users.txt:config/users.txt.example"
     "config/sasl_passwd:config/sasl_passwd.example"
-    "config/rfc2136.ini:config/rfc2136.ini.example"
 )
 
 for config_pair in "${configs_to_copy[@]}"; do
@@ -40,5 +40,6 @@ done
 echo "--- Initialization Complete ---"
 echo "Next steps:"
 echo "1. Run './generate-configs.sh yourdomain.com' to customize configuration."
-echo "2. Run './get-cert.sh' to obtain SSL certificates."
-echo "3. Run 'docker-compose up -d' to start the services."
+echo "2. Point CERTS_DIR (see .env.example) at a directory with your TLS certificate + key,"
+echo "   obtained via your own ACME client (e.g. Caddy). See README 'TLS Certificates'."
+echo "3. Run 'docker compose up -d' to start the service."

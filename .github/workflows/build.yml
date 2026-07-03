@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  schedule:
+    # Weekly rebuild + rescan so base-image CVEs are caught even without a push,
+    # since the base image is pinned by digest (see Dockerfile / renovate.json).
+    - cron: '17 4 * * 1'
 
 jobs:
   lint:
@@ -13,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Lint Shell Scripts
         uses: ludeeus/action-shellcheck@2.0.0
@@ -24,13 +28,9 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ./Dockerfile
-          ignore: DL3008
-          failure-threshold: warning
-
-      - name: Lint Certbot Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: ./certbot.Dockerfile
+          # DL3008: apt packages are intentionally left unpinned so Debian's
+          # own security updates flow in; the base image is digest-pinned instead
+          # (see Dockerfile) and kept fresh via renovate.json + the schedule above.
           ignore: DL3008
           failure-threshold: warning
 
@@ -44,27 +44,38 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Postfix image
-        uses: docker/build-push-action@v5
+      - name: Build Postfix image
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' }}
+          push: false
+          load: true
           tags: ghcr.io/${{ github.repository_owner }}/postfix-relay:latest
 
-      - name: Build and push Certbot image
-        uses: docker/build-push-action@v5
+      - name: Scan Postfix image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ghcr.io/${{ github.repository_owner }}/postfix-relay:latest
+          severity: HIGH,CRITICAL
+          # Report-only for now: unpinned Debian packages will likely surface
+          # pre-existing findings. Flip to exit-code: '1' once triaged.
+          exit-code: '0'
+
+      - name: Push Postfix image
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./certbot.Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ghcr.io/${{ github.repository_owner }}/postfix-certbot:latest
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/postfix-relay:latest
