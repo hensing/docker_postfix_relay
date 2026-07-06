@@ -6,17 +6,14 @@ set -e
 
 echo "--- Initializing Postfix Relay Environment ---"
 
-# Create persistence directory
+# Create persistence directory (mounted as the container's /var/log/postfix,
+# holding mail.log and its rotated mail.log.N siblings)
 mkdir -p ./data
 echo "Ensuring ./data directory exists."
 
 # Create default TLS certificate mount point (populated by your ACME client, e.g. Caddy)
 mkdir -p ./certs
 echo "Ensuring ./certs directory exists."
-
-# Initialize log files to prevent Docker from creating them as directories
-touch ./data/mail.log
-echo "Ensuring ./data/mail.log exists."
 
 # Setup initial configuration files from examples if missing
 echo "Setting up configuration files..."

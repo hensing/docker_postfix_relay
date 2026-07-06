@@ -58,22 +58,41 @@ sasldblistusers2 -f /etc/sasldb2
 # Final health check and log initialization
 echo "Running Postfix configuration check..."
 postfix check
-touch /var/log/mail.log
-chown postfix:postfix /var/log/mail.log
+mkdir -p /var/log/postfix
+chown postfix:postfix /var/log/postfix
+touch /var/log/postfix/mail.log
+chown postfix:postfix /var/log/postfix/mail.log
 
 echo "Starting Postfix system services..."
 service postfix start
 
 echo "Container started. Monitoring mail logs. Press Ctrl+C to stop."
+MAIL_LOG=/var/log/postfix/mail.log
+MAIL_LOG_MAX_BYTES="${MAIL_LOG_MAX_BYTES:-10485760}" # 10 MiB
+MAIL_LOG_KEEP="${MAIL_LOG_KEEP:-5}"
+
+rotate_mail_log() {
+    local n
+    for (( n = MAIL_LOG_KEEP - 1; n >= 1; n-- )); do
+        [ -f "${MAIL_LOG}.$n" ] && mv -f "${MAIL_LOG}.$n" "${MAIL_LOG}.$((n + 1))"
+    done
+    # copytruncate: postlogd keeps its file descriptor open across this, so
+    # there's no need to signal/reload postfix to pick up the new (empty) file.
+    cp "$MAIL_LOG" "${MAIL_LOG}.1"
+    : > "$MAIL_LOG"
+}
+
 # Not using `tail -f` here: it relies on inotify, which some bind-mount
 # storage backends don't reliably deliver for writes made by another
 # process in the container - the file keeps growing but nothing reaches
-# `docker logs`. Poll for new bytes instead, which works everywhere.
+# `docker logs`. Poll for new bytes instead, which works everywhere, and
+# rotate the file ourselves once it grows past MAIL_LOG_MAX_BYTES since
+# nothing else in this container does.
 (
     offset=0
     while true; do
-        if [ -f /var/log/mail.log ]; then
-            size=$(wc -c < /var/log/mail.log 2>/dev/null || echo 0)
+        if [ -f "$MAIL_LOG" ]; then
+            size=$(wc -c < "$MAIL_LOG" 2>/dev/null || echo 0)
             if [ "$size" -lt "$offset" ]; then
                 offset=0
             fi
@@ -81,8 +100,12 @@ echo "Container started. Monitoring mail logs. Press Ctrl+C to stop."
                 # Bound the read to exactly [offset, size) so bytes written
                 # concurrently, after this size snapshot, aren't consumed
                 # here too and printed again next iteration.
-                tail -c +"$((offset + 1))" /var/log/mail.log | head -c "$((size - offset))"
+                tail -c +"$((offset + 1))" "$MAIL_LOG" | head -c "$((size - offset))"
                 offset=$size
+            fi
+            if [ "$size" -ge "$MAIL_LOG_MAX_BYTES" ]; then
+                rotate_mail_log
+                offset=0
             fi
         fi
         sleep 1

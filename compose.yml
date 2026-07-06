@@ -13,7 +13,7 @@ services:
       - ./config/sender_login_map.pcre:/etc/postfix/sender_login_map.pcre
       - ./config/sasl_passwd:/etc/postfix/sasl_passwd
       - ./config/users.txt:/etc/postfix/users.txt
-      - ./data/mail.log:/var/log/mail.log
+      - ./data:/var/log/postfix
       # TLS certificate + private key, provided by an external ACME client
       # (e.g. Caddy) - not managed by this project. See README "TLS Certificates".
       - ${CERTS_DIR:-./certs}:/etc/postfix/certs:ro

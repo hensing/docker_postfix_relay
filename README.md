@@ -35,6 +35,8 @@ The container is configured using the following environment variables (set via `
 | `CERTS_DIR`          | Host directory with your TLS certificate + key, mounted read-only.          | `./certs`                         |
 | `SMTP_TLS_LOGLEVEL`  | The TLS log level for outgoing mail.                                        | `1`                               |
 | `SMTPD_TLS_LOGLEVEL` | The TLS log level for incoming mail.                                        | `1`                               |
+| `MAIL_LOG_MAX_BYTES` | Rotate `data/mail.log` once it reaches this size (bytes).                   | `10485760` (10 MiB)               |
+| `MAIL_LOG_KEEP`      | Number of rotated generations to keep (`mail.log.1`, `mail.log.2`, ...).    | `5`                                |
 
 > `MYHOSTNAME` is not read by the container at runtime — `myhostname` in `main.cf` is fixed at `generate-configs.sh` time. It's kept in `.env` for documentation/consistency only.
 
@@ -132,6 +134,12 @@ docker compose exec postfix postfix reload
 ```
 
 This is a lightweight config reload, **not a restart**: no downtime, no dropped connections. In-flight sessions on already-running workers keep going; only newly spawned workers use the new certificate. Whatever process renews your certificate (Caddy, a cron job, a sync script) should trigger this reload as its last step.
+
+## Logging
+
+Postfix logs to `data/mail.log` on the host (mounted as `/var/log/postfix` in the container) instead of syslog. The entrypoint also forwards it to `docker compose logs` by polling the file rather than using `tail -f`'s default inotify-based following, since some bind-mount storage backends don't reliably deliver inotify events for writes made by another process inside the container.
+
+Since nothing else rotates this file, the entrypoint does it itself: once `data/mail.log` reaches `MAIL_LOG_MAX_BYTES` (default 10 MiB), it's copied to `mail.log.1` (shifting older generations up to `MAIL_LOG_KEEP`, default 5) and truncated in place. Postfix's `postlogd` keeps its file descriptor open across the truncate, so no reload/restart is needed for rotation to take effect.
 
 ## Security Hardening
 

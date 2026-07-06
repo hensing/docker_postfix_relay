@@ -89,8 +89,9 @@ smtpd_recipient_restrictions =
 # set compatibility level
 compatibility_level = 3.6
 
-# Force logging to file for debugging
-maillog_file = /var/log/mail.log
+# Log to a file inside the mounted log directory (see compose.yml), rather
+# than syslog, so the entrypoint can forward it to `docker logs` and rotate it.
+maillog_file = /var/log/postfix/mail.log
 
 # For deep debugging of a specific client, uncomment the following lines:
 #debug_peer_list = 1.2.3.4
