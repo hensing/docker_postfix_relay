@@ -31,7 +31,11 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD-SHELL", "postfix status || exit 1"]
+      # Not `postfix status`: it shells out to postfix-script, which logs
+      # "the Postfix mail system is running" on every single invocation -
+      # at a 30s interval that floods mail.log with noise. Check the master
+      # pidfile directly instead; equivalent liveness signal, silent.
+      test: ["CMD-SHELL", "test -f /var/spool/postfix/pid/master.pid && kill -0 \"$(cat /var/spool/postfix/pid/master.pid)\""]
       interval: 30s
       timeout: 5s
       retries: 3
