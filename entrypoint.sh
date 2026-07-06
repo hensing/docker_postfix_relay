@@ -65,4 +65,26 @@ echo "Starting Postfix system services..."
 service postfix start
 
 echo "Container started. Monitoring mail logs. Press Ctrl+C to stop."
-tail -f /var/log/mail.log & wait $!
+# Not using `tail -f` here: it relies on inotify, which some bind-mount
+# storage backends don't reliably deliver for writes made by another
+# process in the container - the file keeps growing but nothing reaches
+# `docker logs`. Poll for new bytes instead, which works everywhere.
+(
+    offset=0
+    while true; do
+        if [ -f /var/log/mail.log ]; then
+            size=$(wc -c < /var/log/mail.log 2>/dev/null || echo 0)
+            if [ "$size" -lt "$offset" ]; then
+                offset=0
+            fi
+            if [ "$size" -gt "$offset" ]; then
+                # Bound the read to exactly [offset, size) so bytes written
+                # concurrently, after this size snapshot, aren't consumed
+                # here too and printed again next iteration.
+                tail -c +"$((offset + 1))" /var/log/mail.log | head -c "$((size - offset))"
+                offset=$size
+            fi
+        fi
+        sleep 1
+    done
+) & wait $!
