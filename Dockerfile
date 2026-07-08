@@ -1,6 +1,6 @@
 # Dockerfile
 # debian:trixie-slim (Debian 13, current stable as of mid-2026), pinned by digest
-# for reproducible builds. Bump via Renovate (see renovate.json) or manually:
+# for reproducible builds. Bump via Dependabot (see .github/dependabot.yml) or manually:
 #   docker pull debian:trixie-slim && docker inspect --format='{{index .RepoDigests 0}}' debian:trixie-slim
 FROM debian:trixie-slim@sha256:28de0877c2189802884ccd20f15ee41c203573bd87bb6b883f5f46362d24c5c2
 

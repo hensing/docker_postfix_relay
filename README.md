@@ -151,7 +151,7 @@ This container runs as **root**, which is required by Postfix's own architecture
 - **`no-new-privileges`:** blocks gaining privileges via setuid/setgid `exec()`. This does not affect Postfix's own internal `setuid()`/`setgid()` privilege drop, but it does mean the setgid `postdrop`/`postqueue` helpers (used for local command-line mail injection via `mail`/`sendmail` inside the container) will not work. This does not affect the SMTP-587 relay path, which never goes through those binaries.
 - **Submission-only:** the unauthenticated `smtp:25` listener is disabled in `master.cf`; only `submission:587` (SASL + mandatory TLS) is active.
 - **TLS hardening:** `SSLv2`/`SSLv3`/`TLSv1`/`TLSv1.1` and weak ciphers are disabled (`smtpd_tls_protocols`/`smtp_tls_protocols` and `*_ciphers = high` in `config/templates/main.cf`). If you already have an existing `config/main.cf`, re-run `generate-configs.sh` (or apply the equivalent settings by hand) to pick this up — it is not applied automatically to already-generated configs.
-- **Digest-pinned, current base image:** `debian:trixie-slim` pinned by digest for reproducible builds, kept fresh via `renovate.json` + a weekly Renovate/CI run (see `.github/workflows/renovate.yml` and `.github/workflows/build.yml`).
+- **Digest-pinned, current base image:** `debian:trixie-slim` pinned by digest for reproducible builds, kept fresh via `.github/dependabot.yml` (weekly Dependabot updates) + the weekly CI rebuild/rescan (see `.github/workflows/build.yml`).
 - **CI vulnerability scanning:** the image is scanned with Trivy on every build and on a weekly schedule.
 
 Not implemented, intentionally, for this project's scale:

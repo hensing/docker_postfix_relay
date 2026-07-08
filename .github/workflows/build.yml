@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
   schedule:
     # Weekly rebuild + rescan so base-image CVEs are caught even without a push,
-    # since the base image is pinned by digest (see Dockerfile / renovate.json).
+    # since the base image is pinned by digest (see Dockerfile / .github/dependabot.yml).
     - cron: '17 4 * * 1'
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
           dockerfile: ./Dockerfile
           # DL3008: apt packages are intentionally left unpinned so Debian's
           # own security updates flow in; the base image is digest-pinned instead
-          # (see Dockerfile) and kept fresh via renovate.json + the schedule above.
+          # (see Dockerfile) and kept fresh via .github/dependabot.yml + the schedule above.
           ignore: DL3008
           failure-threshold: warning
 
