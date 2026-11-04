@@ -2,7 +2,7 @@
 # debian:trixie-slim (Debian 13, current stable as of mid-2026), pinned by digest
 # for reproducible builds. Bump via Dependabot (see .github/dependabot.yml) or manually:
 #   docker pull debian:trixie-slim && docker inspect --format='{{index .RepoDigests 0}}' debian:trixie-slim
-FROM debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
+FROM debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4
 
 LABEL maintainer="Henning Dickten <hdickten@uni-bonn.de>"
 
