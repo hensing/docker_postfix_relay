@@ -88,8 +88,13 @@ rotate_mail_log() {
 # `docker logs`. Poll for new bytes instead, which works everywhere, and
 # rotate the file ourselves once it grows past MAIL_LOG_MAX_BYTES since
 # nothing else in this container does.
+#
+# Start at the file's current end: data/mail.log persists across restarts,
+# and starting at 0 would replay its whole history (up to MAIL_LOG_MAX_BYTES)
+# into `docker logs` on every start, where log shippers ingest the old lines
+# as new. The history stays in the file.
 (
-    offset=0
+    offset=$(wc -c < "$MAIL_LOG" 2>/dev/null || echo 0)
     while true; do
         if [ -f "$MAIL_LOG" ]; then
             size=$(wc -c < "$MAIL_LOG" 2>/dev/null || echo 0)

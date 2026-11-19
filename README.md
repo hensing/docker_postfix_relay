@@ -137,7 +137,7 @@ This is a lightweight config reload, **not a restart**: no downtime, no dropped 
 
 ## Logging
 
-Postfix logs to `data/mail.log` on the host (mounted as `/var/log/postfix` in the container) instead of syslog. The entrypoint also forwards it to `docker compose logs` by polling the file rather than using `tail -f`'s default inotify-based following, since some bind-mount storage backends don't reliably deliver inotify events for writes made by another process inside the container.
+Postfix logs to `data/mail.log` on the host (mounted as `/var/log/postfix` in the container) instead of syslog. The entrypoint also forwards it to `docker compose logs` by polling the file rather than using `tail -f`'s default inotify-based following, since some bind-mount storage backends don't reliably deliver inotify events for writes made by another process inside the container. Forwarding starts at the file's end on every container start, so only new lines reach `docker compose logs`; the history stays in `data/mail.log` and isn't replayed (a log shipper would otherwise ingest it again as new).
 
 Since nothing else rotates this file, the entrypoint does it itself: once `data/mail.log` reaches `MAIL_LOG_MAX_BYTES` (default 10 MiB), it's copied to `mail.log.1` (shifting older generations up to `MAIL_LOG_KEEP`, default 5) and truncated in place. Postfix's `postlogd` keeps its file descriptor open across the truncate, so no reload/restart is needed for rotation to take effect.
 
